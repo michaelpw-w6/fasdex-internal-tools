@@ -23,27 +23,69 @@ ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=your-secure-password
 ```
 
-## Deployment Steps
+## Step-by-Step Deployment Process
+
+### 1. Deploy to Vercel
+1. Push your code to GitHub
+2. Connect your GitHub repository to Vercel
+3. Vercel will auto-detect Next.js and configure build settings
+4. **Deploy first** (this will give you the domain)
+
+### 2. Get Your Vercel Domain
+After deployment, Vercel will provide you with a domain like:
+- `https://your-app-name.vercel.app`
+
+### 3. Set Environment Variables
+1. Go to your Vercel project dashboard
+2. Click **Settings** → **Environment Variables**
+3. Add all the environment variables listed above
+4. **Important**: Set `NEXTAUTH_URL` to your actual Vercel domain:
+   ```
+   NEXTAUTH_URL=https://your-app-name.vercel.app
+   ```
+
+### 4. Redeploy
+After setting environment variables, trigger a new deployment:
+- Go to **Deployments** tab
+- Click **Redeploy** on the latest deployment
+
+## Accessing Your Deployed App
+
+Once deployed and environment variables are set:
+
+- **Main App**: `https://your-app-name.vercel.app`
+- **Login Page**: `https://your-app-name.vercel.app/login`
+- **Dashboard**: `https://your-app-name.vercel.app/dashboard`
+
+### Default Login Credentials
+- **Email**: `admin@example.com` (or your custom ADMIN_EMAIL)
+- **Password**: `admin123` (or your custom ADMIN_PASSWORD)
+
+## Deployment Options
 
 ### Option 1: Deploy via Vercel CLI
 1. Install Vercel CLI: `npm i -g vercel`
 2. Login: `vercel login`
 3. Deploy: `vercel`
 4. Follow the prompts to link your project
+5. Set environment variables in Vercel dashboard
 
-### Option 2: Deploy via GitHub Integration
+### Option 2: Deploy via GitHub Integration (Recommended)
 1. Push your code to GitHub
-2. Connect your GitHub repository to Vercel
-3. Vercel will auto-detect Next.js and configure build settings
-4. Add environment variables in Vercel dashboard
-5. Deploy
+2. Go to [vercel.com](https://vercel.com)
+3. Click "New Project"
+4. Import your GitHub repository
+5. Deploy (this gives you the domain)
+6. Set environment variables with the correct NEXTAUTH_URL
+7. Redeploy
 
 ### Option 3: Deploy via Vercel Dashboard
 1. Go to [vercel.com](https://vercel.com)
 2. Click "New Project"
 3. Import your Git repository
-4. Configure environment variables
-5. Deploy
+4. Deploy first to get the domain
+5. Configure environment variables
+6. Redeploy
 
 ## Important Notes
 
@@ -85,9 +127,14 @@ If you encounter CORS issues, add this to your S3 bucket policy:
 ### Runtime Errors
 - Check Vercel function logs
 - Verify S3 bucket permissions
-- Ensure NEXTAUTH_URL matches your domain
+- Ensure NEXTAUTH_URL matches your domain exactly
 
 ### File Upload Issues
 - Verify S3 bucket exists and is accessible
 - Check IAM user permissions
 - Ensure file size limits are appropriate
+
+### Authentication Issues
+- Verify NEXTAUTH_URL is set to your exact Vercel domain
+- Check NEXTAUTH_SECRET is set
+- Ensure environment variables are set for production environment
