@@ -33,3 +33,12 @@ export async function getSignedUploadUrl(fileName: string, contentType: string):
 
   return await getSignedUrl(s3Client, command, { expiresIn: 3600 })
 }
+
+export async function getSignedDownloadUrl(fileName: string): Promise<string> {
+  const command = new PutObjectCommand({
+    Bucket: process.env.S3_BUCKET_NAME!,
+    Key: fileName,
+  })
+
+  return await getSignedUrl(s3Client, command, { expiresIn: 3600 })
+}

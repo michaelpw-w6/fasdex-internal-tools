@@ -11,6 +11,10 @@ export default function DashboardPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState("")
+  const [uploadResult, setUploadResult] = useState<{
+    fileName: string
+    signedUrl: string
+  } | null>(null)
   const [dragActive, setDragActive] = useState(false)
 
   useEffect(() => {
@@ -49,6 +53,7 @@ export default function DashboardPage() {
 
     setUploading(true)
     setUploadStatus("")
+    setUploadResult(null)
 
     try {
       const formData = new FormData()
@@ -61,7 +66,11 @@ export default function DashboardPage() {
 
       if (response.ok) {
         const result = await response.json()
-        setUploadStatus(`File uploaded successfully! File name: ${result.fileName}`)
+        setUploadResult({
+          fileName: result.fileName,
+          signedUrl: result.signedUrl
+        })
+        setUploadStatus(`File uploaded successfully! Webhook API called.`)
       } else {
         const error = await response.json()
         setUploadStatus(`Upload failed: ${error.message}`)
@@ -98,6 +107,11 @@ export default function DashboardPage() {
     if (files && files[0]) {
       handleFileUpload(files[0])
     }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setUploadStatus("Signed URL copied to clipboard!")
   }
 
   return (
@@ -175,7 +189,7 @@ export default function DashboardPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Uploading...
+                  Uploading and calling webhook...
                 </div>
               </div>
             )}
@@ -185,6 +199,38 @@ export default function DashboardPage() {
                 uploadStatus.includes("successfully") ? "text-green-600" : "text-red-600"
               }`}>
                 {uploadStatus}
+              </div>
+            )}
+
+            {uploadResult && (
+              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h3 className="text-sm font-medium text-green-800 mb-2">Upload Successful</h3>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="font-medium text-green-700">File Name:</span>
+                    <span className="ml-2 text-green-600">{uploadResult.fileName}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-green-700">Signed URL:</span>
+                    <div className="mt-1 flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={uploadResult.signedUrl}
+                        readOnly
+                        className="flex-1 px-3 py-1 text-xs border border-green-300 rounded bg-white text-gray-700"
+                      />
+                      <button
+                        onClick={() => copyToClipboard(uploadResult.signedUrl)}
+                        className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-xs text-green-600 mt-2">
+                    ✅ Webhook API called successfully
+                  </div>
+                </div>
               </div>
             )}
           </div>

@@ -1,11 +1,17 @@
-# Vercel Deployment Guide - FIXED
+# Vercel Deployment Guide - Updated with Webhook Integration
 
-## ✅ Build Issues Resolved
+## ✅ New Features Added
 
-The NextAuth compatibility issues with Next.js 15 have been fixed by:
-- Using NextAuth v4.24.11 (stable version)
-- Simplified TypeScript configuration
-- Proper ESLint suppressions for compatibility
+### Webhook Integration
+- After file upload to S3, the app automatically calls the webhook API
+- Webhook URL: `https://w6w.sit.waresix.ai/webhook/fasdex/update-price-list`
+- Sends signed URL and file metadata to the webhook
+- Includes error handling - upload succeeds even if webhook fails
+
+### Enhanced Dashboard
+- Shows upload status and webhook call confirmation
+- Displays signed URL with copy-to-clipboard functionality
+- Better user feedback for the entire upload process
 
 ## Vercel Configuration
 
@@ -29,6 +35,32 @@ S3_BUCKET_NAME=your-s3-bucket-name
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=your-secure-password
 ```
+
+## Webhook Integration Details
+
+### What happens when you upload a file:
+
+1. **File Upload**: File is uploaded to S3 bucket
+2. **Signed URL Generation**: A signed URL is generated for the uploaded file
+3. **Webhook Call**: The app calls the webhook API with the following data:
+   ```json
+   {
+     "signedUrl": "https://your-bucket.s3.amazonaws.com/signed-url",
+     "fileName": "1234567890-filename.pdf",
+     "originalFileName": "filename.pdf",
+     "fileType": "application/pdf",
+     "fileSize": 1024000,
+     "uploadedBy": "admin@example.com",
+     "uploadedAt": "2024-01-01T12:00:00.000Z"
+   }
+   ```
+4. **User Feedback**: Dashboard shows success status and signed URL
+
+### Webhook API Endpoint
+- **URL**: `https://w6w.sit.waresix.ai/webhook/fasdex/update-price-list`
+- **Method**: POST
+- **Content-Type**: application/json
+- **Error Handling**: Upload succeeds even if webhook fails (logged for debugging)
 
 ## Step-by-Step Deployment Process
 
@@ -63,10 +95,25 @@ Once deployed and environment variables are set:
 - **Main App**: `https://your-app-name.vercel.app`
 - **Login Page**: `https://your-app-name.vercel.app/login`
 - **Dashboard**: `https://your-app-name.vercel.app/dashboard`
+- **Test Webhook**: `https://your-app-name.vercel.app/api/test-webhook` (POST)
 
 ### Default Login Credentials
 - **Email**: `admin@example.com` (or your custom ADMIN_EMAIL)
 - **Password**: `admin123` (or your custom ADMIN_PASSWORD)
+
+## Testing the Webhook
+
+### Option 1: Upload a file through the dashboard
+1. Login to the dashboard
+2. Upload a PDF or image file
+3. Check the success message and signed URL
+
+### Option 2: Test webhook directly
+```bash
+curl -X POST https://your-app-name.vercel.app/api/test-webhook \
+  -H "Content-Type: application/json" \
+  -d '{"test": true}'
+```
 
 ## Deployment Options
 
@@ -98,6 +145,12 @@ Once deployed and environment variables are set:
 2. Create an IAM user with S3 permissions
 3. Generate access keys
 4. Update environment variables
+
+### Webhook Reliability
+- The webhook call is made asynchronously
+- Upload succeeds even if webhook fails
+- Webhook errors are logged for debugging
+- Signed URLs expire after 1 hour
 
 ### CORS Configuration
 If you encounter CORS issues, add this to your S3 bucket policy:
@@ -134,6 +187,12 @@ If you encounter CORS issues, add this to your S3 bucket policy:
 - Check IAM user permissions
 - Ensure file size limits are appropriate
 
+### Webhook Issues
+- Check Vercel function logs for webhook errors
+- Verify webhook URL is accessible
+- Test webhook endpoint directly
+- Check network connectivity from Vercel to webhook
+
 ### Authentication Issues
 - Verify NEXTAUTH_URL is set to your exact Vercel domain
 - Check NEXTAUTH_SECRET is set
@@ -141,4 +200,4 @@ If you encounter CORS issues, add this to your S3 bucket policy:
 
 ## ✅ Ready to Deploy!
 
-The application now builds successfully and is ready for Vercel deployment!
+The application now includes webhook integration and is ready for Vercel deployment!
