@@ -13,6 +13,11 @@
 - Displays signed URL with copy-to-clipboard functionality
 - Better user feedback for the entire upload process
 
+### Fixed Signed URL Generation
+- ✅ **FIXED**: SignatureDoesNotMatch error resolved
+- Now uses `GetObjectCommand` instead of `PutObjectCommand` for signed URLs
+- Signed URLs are properly generated for file viewing/downloading
+
 ## Vercel Configuration
 
 ### Build Settings
@@ -41,7 +46,7 @@ ADMIN_PASSWORD=your-secure-password
 ### What happens when you upload a file:
 
 1. **File Upload**: File is uploaded to S3 bucket
-2. **Signed URL Generation**: A signed URL is generated for the uploaded file
+2. **Signed URL Generation**: A signed URL is generated for the uploaded file (using GetObjectCommand)
 3. **Webhook Call**: The app calls the webhook API with the following data:
    ```json
    {
@@ -96,6 +101,7 @@ Once deployed and environment variables are set:
 - **Login Page**: `https://your-app-name.vercel.app/login`
 - **Dashboard**: `https://your-app-name.vercel.app/dashboard`
 - **Test Webhook**: `https://your-app-name.vercel.app/api/test-webhook` (POST)
+- **Test Signed URL**: `https://your-app-name.vercel.app/api/test-signed-url` (POST)
 
 ### Default Login Credentials
 - **Email**: `admin@example.com` (or your custom ADMIN_EMAIL)
@@ -107,12 +113,20 @@ Once deployed and environment variables are set:
 1. Login to the dashboard
 2. Upload a PDF or image file
 3. Check the success message and signed URL
+4. Click the signed URL to verify it works
 
 ### Option 2: Test webhook directly
 ```bash
 curl -X POST https://your-app-name.vercel.app/api/test-webhook \
   -H "Content-Type: application/json" \
   -d '{"test": true}'
+```
+
+### Option 3: Test signed URL generation
+```bash
+curl -X POST https://your-app-name.vercel.app/api/test-signed-url \
+  -H "Content-Type: application/json" \
+  -d '{"fileName": "your-file-name.pdf"}'
 ```
 
 ## Deployment Options
@@ -152,6 +166,11 @@ curl -X POST https://your-app-name.vercel.app/api/test-webhook \
 - Webhook errors are logged for debugging
 - Signed URLs expire after 1 hour
 
+### Signed URL Fix
+- ✅ **FIXED**: Now uses `GetObjectCommand` for proper signed URL generation
+- Signed URLs are valid for viewing/downloading files
+- No more SignatureDoesNotMatch errors
+
 ### CORS Configuration
 If you encounter CORS issues, add this to your S3 bucket policy:
 ```json
@@ -187,6 +206,12 @@ If you encounter CORS issues, add this to your S3 bucket policy:
 - Check IAM user permissions
 - Ensure file size limits are appropriate
 
+### Signed URL Issues
+- ✅ **FIXED**: SignatureDoesNotMatch error resolved
+- Verify S3 bucket permissions include GetObject
+- Check AWS credentials are correct
+- Ensure file exists in S3 bucket
+
 ### Webhook Issues
 - Check Vercel function logs for webhook errors
 - Verify webhook URL is accessible
@@ -200,4 +225,4 @@ If you encounter CORS issues, add this to your S3 bucket policy:
 
 ## ✅ Ready to Deploy!
 
-The application now includes webhook integration and is ready for Vercel deployment!
+The application now includes webhook integration with fixed signed URL generation and is ready for Vercel deployment!

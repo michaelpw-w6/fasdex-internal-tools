@@ -35,35 +35,47 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log(`Uploading file: ${file.name}, type: ${file.type}, size: ${file.size}`)
+
     // Upload to S3
     const fileName = await uploadToS3(file)
+    console.log(`File uploaded to S3 with key: ${fileName}`)
 
     // Get signed URL for the uploaded file
     const signedUrl = await getSignedDownloadUrl(fileName)
+    console.log(`Generated signed URL for file: ${fileName}`)
 
     // Call the webhook API
     try {
+      const webhookPayload = {
+        signedUrl: signedUrl,
+        fileName: fileName,
+        originalFileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        uploadedBy: session.user?.email,
+        uploadedAt: new Date().toISOString()
+      }
+
+      console.log('Calling webhook with payload:', webhookPayload)
+
       const webhookResponse = await fetch('https://w6w.sit.waresix.ai/webhook/fasdex/update-price-list', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          signedUrl: signedUrl,
-          fileName: fileName,
-          originalFileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-          uploadedBy: session.user?.email,
-          uploadedAt: new Date().toISOString()
-        })
+        body: JSON.stringify(webhookPayload)
       })
 
       if (!webhookResponse.ok) {
         console.error('Webhook call failed:', webhookResponse.status, webhookResponse.statusText)
+        const errorText = await webhookResponse.text()
+        console.error('Webhook error response:', errorText)
         // Don't fail the upload if webhook fails, just log it
       } else {
         console.log('Webhook called successfully')
+        const responseText = await webhookResponse.text()
+        console.log('Webhook response:', responseText)
       }
     } catch (webhookError) {
       console.error('Webhook error:', webhookError)
